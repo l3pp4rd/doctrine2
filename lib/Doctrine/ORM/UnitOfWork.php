@@ -364,6 +364,8 @@ class UnitOfWork implements PropertyChangedListener
             }
 
             $conn->commit();
+        } catch (\Doctrine\DBAL\DBALException $e) {
+            throw $e;
         } catch (Exception $e) {
             $this->em->close();
             $conn->rollback();
@@ -2875,7 +2877,7 @@ class UnitOfWork implements PropertyChangedListener
 
         return isset($values[$class->identifier[0]]) ? $values[$class->identifier[0]] : null;
     }
- 
+
     /**
      * Tries to find an entity with the given identifier in the identity map of
      * this UnitOfWork.
