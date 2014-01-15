@@ -327,7 +327,8 @@ class UnitOfWork implements PropertyChangedListener
         $commitOrder = $this->getCommitOrder();
 
         $conn = $this->em->getConnection();
-        $conn->beginTransaction();
+        if (!($transactionStarted = $conn->isTransactionActive()))
+            $conn->beginTransaction();
 
         try {
             if ($this->entityInsertions) {
@@ -363,12 +364,14 @@ class UnitOfWork implements PropertyChangedListener
                 }
             }
 
-            $conn->commit();
+            if (!$transactionStarted)
+                $conn->commit();
         } catch (\Doctrine\DBAL\DBALException $e) {
             throw $e;
         } catch (Exception $e) {
             $this->em->close();
-            $conn->rollback();
+            if (!$transactionStarted)
+                $conn->rollback();
 
             throw $e;
         }
